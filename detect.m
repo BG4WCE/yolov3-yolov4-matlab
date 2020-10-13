@@ -1,9 +1,9 @@
 %% custom input
 addpath('./CustomLayers/','./utils/')
-% clear all % 如果更换模型，需重置静态函数(影响性能)，否则可以不用清理
-cfg_file = 'cfg/yolov4-tiny.cfg';
-weight_file = 'weights/yolov4-tiny.weights';
-throushold = 0.1;
+clear all % 如果更换模型，需重置静态函数(影响性能)，否则可以不用清理
+cfg_file = 'cfg/yolov3-tiny.cfg';
+weight_file = 'weights/yolov3-tiny.weights';
+throushold = 0.25;
 NMS = 0.4;
 
 %% import all classes
@@ -13,15 +13,17 @@ fclose(fid);classesNames = categorical(names{1});
 RGB = randi(255,length(classesNames),3);
 
 %% 摄像头视频流识别
-cap = webcam();
-player = vision.DeployableVideoPlayer();
-image = cap.snapshot();
-step(player, image);
+cap = webcam(1);
+% player = vision.DeployableVideoPlayer();
+% image = cap.snapshot();
+% step(player, image);
 
-while player.isOpen()
-    image = cap.snapshot();
+% while player.isOpen()
+while true
+    im = snapshot(cap);
+    image(im);
     t1 = tic;
-    outFeatures = yolov3v4Predict(cfg_file,weight_file,image);% M*(5+nc) ,为[x,y,w,h,Pobj,p1,p2,...,pn]
+    outFeatures = yolov3v4Predict(cfg_file,weight_file,im);% M*(5+nc) ,为[x,y,w,h,Pobj,p1,p2,...,pn]
     fprintf('预测耗时：%.2f 秒\n',toc(t1));% yolov4大概0.4秒，yolov3大概0.2秒，yolov3-tiny大概0.06秒,yolov4-tiny大概0.07秒,yolov3-tiny-prn大概0.06秒
     
     %% 阈值过滤+NMS处理
@@ -41,14 +43,15 @@ while player.isOpen()
         annotations = string(labels) + ": " + string(scores);
         [~,ids] = ismember(labels,classesNames);
         colors = RGB(ids,:);
-        image = insertObjectAnnotation(image,...
+        im = insertObjectAnnotation(im,...
             'rectangle',bboxes,cellstr(annotations),...
             'Color',colors,...
             'LineWidth',3);
     end
-    step(player,image);
+    drawnow
+%     step(player,im);
 end
-release(player);
+% release(player);
 
 
 

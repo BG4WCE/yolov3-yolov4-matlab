@@ -48,6 +48,9 @@ classdef yolov3Layer < nnet.layer.Layer
             
             anchorsUse = allAnchors(mask,:);% na*2, 注意matlab中mask是从1开始的索引 
             layer.Name = name;
+            if ~exist('arc', 'var')
+                arc = 'default';
+            end
             text = ['all number classes:', num2str(nClasses),...
                 ',used anchor box:',mat2str(round(anchorsUse)),...
                 ', yoloLayerID:',num2str(yoloIndex),...
